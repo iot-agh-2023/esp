@@ -1,3 +1,13 @@
+#define BLE_SERVER 1
+#define BLE_CLIENT 2
+#define PROGRAM_NORMAL 3
+#define PROGRAM BLE_SERVER
+
+#if PROGRAM == BLE_SERVER
+    #include "gatts_demo_server.c"
+#elif PROGRAM == BLE_CLIENT
+    // include client
+#else
 // custom logic
 #include "oled.h"
 #include "network.h"
@@ -90,3 +100,5 @@ void wifi_sanity_check() {
     display_text(2, response);
     free(response);
 }
+
+#endif
