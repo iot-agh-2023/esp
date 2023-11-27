@@ -1,12 +1,12 @@
 #define BLE_SERVER 1
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
-#define PROGRAM BLE_SERVER
+#define PROGRAM BLE_CLIENT
 
 #if PROGRAM == BLE_SERVER
     #include "gatts_demo_server.c"
 #elif PROGRAM == BLE_CLIENT
-    // include client
+    #include "gattc_demo_client.c"
 #else
 // custom logic
 #include "oled.h"
