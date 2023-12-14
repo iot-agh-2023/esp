@@ -31,14 +31,14 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
-#define GATTC_TAG "GATTC_DEMO"
+#define GATTC_TAG "GATTC"
 #define REMOTE_SERVICE_UUID        0x00FF
 #define REMOTE_NOTIFY_CHAR_UUID    0xFF01
 #define PROFILE_NUM      1
 #define PROFILE_A_APP_ID 0
 #define INVALID_HANDLE   0
 
-static const char remote_device_name[] = "ESP_GATTS_DEMO";
+static const char remote_device_name[] = "POCO X4 GT";
 static bool connect    = false;
 static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result   = NULL;
@@ -343,20 +343,10 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
                                                 ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
             ESP_LOGI(GATTC_TAG, "searched Device Name Len %d", adv_name_len);
             esp_log_buffer_char(GATTC_TAG, adv_name, adv_name_len);
-
-#if CONFIG_EXAMPLE_DUMP_ADV_DATA_AND_SCAN_RESP
-            if (scan_result->scan_rst.adv_data_len > 0) {
-                ESP_LOGI(GATTC_TAG, "adv data:");
-                esp_log_buffer_hex(GATTC_TAG, &scan_result->scan_rst.ble_adv[0], scan_result->scan_rst.adv_data_len);
-            }
-            if (scan_result->scan_rst.scan_rsp_len > 0) {
-                ESP_LOGI(GATTC_TAG, "scan resp:");
-                esp_log_buffer_hex(GATTC_TAG, &scan_result->scan_rst.ble_adv[scan_result->scan_rst.adv_data_len], scan_result->scan_rst.scan_rsp_len);
-            }
-#endif
             ESP_LOGI(GATTC_TAG, "\n");
 
             if (adv_name != NULL) {
+                ESP_LOGI(GATTC_TAG, "%s", (char *)adv_name);
                 if (strlen(remote_device_name) == adv_name_len && strncmp((char *)adv_name, remote_device_name, adv_name_len) == 0) {
                     ESP_LOGI(GATTC_TAG, "searched device %s\n", remote_device_name);
                     if (connect == false) {
