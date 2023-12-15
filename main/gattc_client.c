@@ -31,8 +31,8 @@
 #include "freertos/task.h"
 
 #define GATTC_TAG "GATTC_CLIENT"
-#define REMOTE_SERVICE_UUID 0x1809
-#define REMOTE_NOTIFY_CHAR_UUID 0x2A1D
+#define REMOTE_SERVICE_UUID 0x1805
+#define REMOTE_NOTIFY_CHAR_UUID 0x2A2b
 #define PROFILE_NUM 1
 #define PROFILE_A_APP_ID 0
 #define INVALID_HANDLE 0
@@ -40,7 +40,7 @@
 /* ---------------- DEBUG ------------------ */
 // #define CONFIG_EXAMPLE_DUMP_ADV_DATA_AND_SCAN_RESP 1
 
-static const char remote_device_name[] = "GATT_DEVICE";
+static const char remote_device_name[] = "POCO X4 GT";
 static bool connect = false;
 static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result = NULL;
@@ -235,10 +235,16 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                     }
 
                     /*  Every service have only one char in our 'ESP_GATTS_DEMO' demo, so we used first 'char_elem_result' */
-                    if (count > 0 && (char_elem_result[0].properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY))
-                    {
+                    // if (count > 0 && (char_elem_result[0].properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY))
+                    // {
+                    //     gl_profile_tab[PROFILE_A_APP_ID].char_handle = char_elem_result[0].char_handle;
+                    //     esp_ble_gattc_register_for_notify(gattc_if, gl_profile_tab[PROFILE_A_APP_ID].remote_bda, char_elem_result[0].char_handle);
+                    // }
+                    if (count > 0 && char_elem_result[0].properties & ESP_GATT_CHAR_PROP_BIT_READ) {
+                        ESP_LOGI(GATTC_TAG, "Reading characteristic");
                         gl_profile_tab[PROFILE_A_APP_ID].char_handle = char_elem_result[0].char_handle;
-                        esp_ble_gattc_register_for_notify(gattc_if, gl_profile_tab[PROFILE_A_APP_ID].remote_bda, char_elem_result[0].char_handle);
+                        esp_ble_gattc_read_char(gattc_if, gl_profile_tab[PROFILE_A_APP_ID].conn_id,
+                            gl_profile_tab[PROFILE_A_APP_ID].char_handle, ESP_GATT_AUTH_REQ_NONE);
                     }
                 }
                 /* free char_elem_result */
@@ -252,13 +258,14 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         }
         break;
     case ESP_GATTC_READ_CHAR_EVT:
+        ESP_LOGI(GATTC_TAG, "read char evt");
         if (param->read.status == ESP_GATT_OK)
         {
             ESP_LOGI(GATTC_TAG, "Read Data: %.*s", param->read.value_len, param->read.value);
         }
         else
         {
-            ESP_LOGE(GATTC_TAG, "Read Failed status %d", param->read.status);
+            ESP_LOGE(GATTC_TAG, "Error reading characteristic %d", param->read.status);
         }
         break;
     case ESP_GATTC_REG_FOR_NOTIFY_EVT:
