@@ -40,7 +40,7 @@
 /* ---------------- DEBUG ------------------ */
 // #define CONFIG_EXAMPLE_DUMP_ADV_DATA_AND_SCAN_RESP 1
 
-static const char remote_device_name[] = "NOT_A_REAL_THERMOMETER";
+static const char remote_device_name[] = "GATT_DEVICE";
 static bool connect = false;
 static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result = NULL;
