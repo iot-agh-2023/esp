@@ -1,7 +1,7 @@
 #define BLE_SERVER 1
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
-#define PROGRAM BLE_SERVER
+#define PROGRAM PROGRAM_NORMAL
 
 #if PROGRAM == BLE_SERVER
     #include "gatts_server.c"
@@ -34,6 +34,7 @@ void wifi_sanity_check();
 void app_main()
 {
     init();
+    display_text(1, "Hello");
     wifi_sanity_check();
 
     int prevWifi = true;
