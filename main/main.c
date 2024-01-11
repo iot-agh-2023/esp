@@ -1,7 +1,7 @@
 #define BLE_SERVER 1
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
-#define PROGRAM BLE_CLIENT
+#define PROGRAM BLE_SERVER
 
 #if PROGRAM == BLE_SERVER
     #include "gatts_server.c"
