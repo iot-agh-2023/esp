@@ -46,7 +46,7 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
 	i2c_master_start(cmd);
-	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
+	i2c_master_write_byte(cmd, (dev->_address << 1), true);
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
 	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_OFF, true);				// AE
 	i2c_master_write_byte(cmd, OLED_CMD_SET_MUX_RATIO, true);			// A8 // send pixel rows to handle at once
@@ -61,7 +61,7 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_PIN_MAP, true);			// DA
 	i2c_master_write_byte(cmd, 0x12, true);
 	i2c_master_write_byte(cmd, OLED_CMD_SET_CONTRAST, true);			// 81
-	i2c_master_write_byte(cmd, 0xFF, true);
+	i2c_master_write_byte(cmd, 0xFF, true); // "dark background"
 	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_RAM, true);				// A4
 	i2c_master_write_byte(cmd, OLED_CMD_SET_VCOMH_DESELCT, true);		// DB
 	i2c_master_write_byte(cmd, 0x40, true);
@@ -142,7 +142,7 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 
 	cmd = i2c_cmd_link_create();
 	i2c_master_start(cmd);
-	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
+	i2c_master_write_byte(cmd, (dev->_address << 1), true);
 
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
 	// Column Start Address
@@ -158,7 +158,7 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 
 	cmd = i2c_cmd_link_create();
 	i2c_master_start(cmd);
-	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
+	i2c_master_write_byte(cmd, (dev->_address << 1), true);
 
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
 	i2c_master_write(cmd, images, width, true);
