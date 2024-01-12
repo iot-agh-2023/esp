@@ -12,6 +12,7 @@
 #include "oled.h"
 #include "network.h"
 #include "button.h"
+#include "dht11.h"
 // esp libs
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -50,6 +51,10 @@ void app_main()
             http_ping.state = IDLE;
         }
 
+        printf("Temperature is %d \n", DHT11_read().temperature);
+        printf("Humidity is %d\n", DHT11_read().humidity);
+        printf("Status code is %d\n", DHT11_read().status);
+
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
             if (is_wifi_connected() && http_ping.state == IDLE) {
@@ -79,6 +84,8 @@ void init()
 		ret = nvs_flash_init();
 	}
 	ESP_ERROR_CHECK(ret);
+
+    DHT11_init(GPIO_NUM_5);
 
     init_display();
     init_button();
