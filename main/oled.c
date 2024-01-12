@@ -42,7 +42,6 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	dev->_width = width;
 	dev->_height = height;
 	dev->_pages = 8;
-	if (dev->_height == 32) dev->_pages = 4;
 
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
@@ -51,24 +50,17 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
 	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_OFF, true);				// AE
 	i2c_master_write_byte(cmd, OLED_CMD_SET_MUX_RATIO, true);			// A8
-	if (dev->_height == 64) i2c_master_write_byte(cmd, 0x3F, true);
-	if (dev->_height == 32) i2c_master_write_byte(cmd, 0x1F, true);
+	i2c_master_write_byte(cmd, 0x3F, true); // Start at top
 	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_OFFSET, true);		// D3
 	i2c_master_write_byte(cmd, 0x00, true);
 	//i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);	// 40
 	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_START_LINE, true);	// 40
-	//i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP, true);		// A1
-	if (dev->_flip) {
-		i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_0, true);		// A0
-	} else {
-		i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_1, true);		// A1
-	}
+    i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_1, true);		// A1
 	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE, true);		// C8
 	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_CLK_DIV, true);		// D5
 	i2c_master_write_byte(cmd, 0x80, true);
 	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_PIN_MAP, true);			// DA
-	if (dev->_height == 64) i2c_master_write_byte(cmd, 0x12, true);
-	if (dev->_height == 32) i2c_master_write_byte(cmd, 0x02, true);
+	i2c_master_write_byte(cmd, 0x12, true);
 	i2c_master_write_byte(cmd, OLED_CMD_SET_CONTRAST, true);			// 81
 	i2c_master_write_byte(cmd, 0xFF, true);
 	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_RAM, true);				// A4
