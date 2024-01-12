@@ -7,9 +7,11 @@
 
 #include "ssd1306.h"
 #include "font8x8_basic.h"
+#include "driver/i2c.h"
 
 #define WIDTH 128
 #define HEIGHT 64
+#define I2C_NUM 0
 
 static char const *tag = "oled";
 
@@ -52,6 +54,49 @@ void print(SSD1306_t *dev, int page, char* text, int text_len) {
 
 		seg = seg + 8;
 	}
+}
+
+void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width) {
+	i2c_cmd_handle_t cmd;
+
+	if (page >= dev->_pages) return;
+	if (seg >= dev->_width) return;
+
+	int _seg = seg + CONFIG_OFFSETX;
+	uint8_t columLow = _seg & 0x0F;
+	uint8_t columHigh = (_seg >> 4) & 0x0F;
+
+	int _page = page;
+	if (dev->_flip) {
+		_page = (dev->_pages - page) - 1;
+	}
+
+	cmd = i2c_cmd_link_create();
+	i2c_master_start(cmd);
+	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
+
+	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
+	// Lower Column Start Address
+	i2c_master_write_byte(cmd, (0x00 + columLow), true);
+	// Set Higher Column Start Address
+	i2c_master_write_byte(cmd, (0x10 + columHigh), true);
+	// Set Page Start Address
+	i2c_master_write_byte(cmd, 0xB0 | _page, true);
+
+	i2c_master_stop(cmd);
+	i2c_master_cmd_begin(I2C_NUM, cmd, 10/portTICK_PERIOD_MS);
+	i2c_cmd_link_delete(cmd);
+
+	cmd = i2c_cmd_link_create();
+	i2c_master_start(cmd);
+	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
+
+	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);
+	i2c_master_write(cmd, images, width, true);
+
+	i2c_master_stop(cmd);
+	i2c_master_cmd_begin(I2C_NUM, cmd, 10/portTICK_PERIOD_MS);
+	i2c_cmd_link_delete(cmd);
 }
 
 void display_text(int line, char const* text) {
