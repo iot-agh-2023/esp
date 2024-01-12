@@ -149,13 +149,6 @@ void ssd1306_clear_screen(SSD1306_t * dev, bool invert)
 	}
 }
 
-void ssd1306_clear_line(SSD1306_t * dev, int page, bool invert)
-{
-	char space[16];
-	memset(space, 0x00, sizeof(space));
-	ssd1306_display_text(dev, page, space, sizeof(space), invert);
-}
-
 void ssd1306_contrast(SSD1306_t * dev, int contrast)
 {
     i2c_contrast(dev, contrast);
@@ -206,17 +199,17 @@ void ssd1306_scroll_text(SSD1306_t * dev, char * text, int text_len, bool invert
 
 void ssd1306_scroll_clear(SSD1306_t * dev)
 {
-	ESP_LOGD(TAG, "dev->_scEnable=%d", dev->_scEnable);
-	if (dev->_scEnable == false) return;
+	// ESP_LOGD(TAG, "dev->_scEnable=%d", dev->_scEnable);
+	// if (dev->_scEnable == false) return;
 
-	int srcIndex = dev->_scEnd - dev->_scDirection;
-	while(1) {
-		int dstIndex = srcIndex + dev->_scDirection;
-		ESP_LOGD(TAG, "srcIndex=%d dstIndex=%d", srcIndex,dstIndex);
-		ssd1306_clear_line(dev, dstIndex, false);
-		if (dstIndex == dev->_scStart) break;
-		srcIndex = srcIndex - dev->_scDirection;
-	}
+	// int srcIndex = dev->_scEnd - dev->_scDirection;
+	// while(1) {
+	// 	int dstIndex = srcIndex + dev->_scDirection;
+	// 	ESP_LOGD(TAG, "srcIndex=%d dstIndex=%d", srcIndex,dstIndex);
+	// 	ssd1306_clear_line(dev, dstIndex, false);
+	// 	if (dstIndex == dev->_scStart) break;
+	// 	srcIndex = srcIndex - dev->_scDirection;
+	// }
 }
 
 

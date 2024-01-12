@@ -99,10 +99,14 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 	i2c_cmd_link_delete(cmd);
 }
 
+void clear_line(SSD1306_t * dev, int page)
+{
+	char space[16];
+	memset(space, 0x00, sizeof(space));
+	print(dev, page, space, sizeof(space));
+}
+
 void display_text(int line, char const* text) {
-    // char space[16];
-	// memset(space, 0x00, sizeof(space));
-	// print(dev, line, space, sizeof(space), false);
-    ssd1306_clear_line(&dev, line, false);
-    ssd1306_display_text(&dev, line, text, strlen(text), false);
+    clear_line(&dev, line);
+    print(&dev, line, text, strlen(text));
 }
