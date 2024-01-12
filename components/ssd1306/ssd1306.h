@@ -3,21 +3,21 @@
 
 #include "driver/spi_master.h"
 
-// Following definitions are bollowed from 
+// Following definitions are bollowed from
 // http://robotcantalk.blogspot.com/2015/03/interfacing-arduino-with-ssd1306-driven.html
 
 /* Control byte for i2c
-Co : bit 8 : Continuation Bit 
- * 1 = no-continuation (only one byte to follow) 
- * 0 = the controller should expect a stream of bytes. 
-D/C# : bit 7 : Data/Command Select bit 
- * 1 = the next byte or byte stream will be Data. 
- * 0 = a Command byte or byte stream will be coming up next. 
- Bits 6-0 will be all zeros. 
-Usage: 
-0x80 : Single Command byte 
-0x00 : Command Stream 
-0xC0 : Single Data byte 
+Co : bit 8 : Continuation Bit
+ * 1 = no-continuation (only one byte to follow)
+ * 0 = the controller should expect a stream of bytes.
+D/C# : bit 7 : Data/Command Select bit
+ * 1 = the next byte or byte stream will be Data.
+ * 0 = a Command byte or byte stream will be coming up next.
+ Bits 6-0 will be all zeros.
+Usage:
+0x80 : Single Command byte
+0x00 : Command Stream
+0xC0 : Single Data byte
 0x40 : Data Stream
 */
 #define OLED_CONTROL_BYTE_CMD_SINGLE    0x80
@@ -44,10 +44,10 @@ Usage:
 
 // Hardware Config (pg.31)
 #define OLED_CMD_SET_DISPLAY_START_LINE 0x40
-#define OLED_CMD_SET_SEGMENT_REMAP_0    0xA0    
-#define OLED_CMD_SET_SEGMENT_REMAP_1    0xA1    
+#define OLED_CMD_SET_SEGMENT_REMAP_0    0xA0
+#define OLED_CMD_SET_SEGMENT_REMAP_1    0xA1
 #define OLED_CMD_SET_MUX_RATIO          0xA8    // follow with 0x3F = 64 MUX
-#define OLED_CMD_SET_COM_SCAN_MODE      0xC8    
+#define OLED_CMD_SET_COM_SCAN_MODE      0xC8
 #define OLED_CMD_SET_DISPLAY_OFFSET     0xD3    // follow with 0x00
 #define OLED_CMD_SET_COM_PIN_MAP        0xDA    // follow with 0x12
 #define OLED_CMD_NOP                    0xE3    // NOP
@@ -69,7 +69,6 @@ Usage:
 #define OLED_CMD_VERTICAL               0xA3
 
 #define I2CAddress 0x3C
-#define SPIAddress 0xFF
 
 typedef enum {
 	SCROLL_RIGHT = 1,
@@ -100,58 +99,11 @@ typedef struct {
 	bool _flip;
 } SSD1306_t;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-void ssd1306_init(SSD1306_t * dev, int width, int height);
-int ssd1306_get_width(SSD1306_t * dev);
-int ssd1306_get_height(SSD1306_t * dev);
-int ssd1306_get_pages(SSD1306_t * dev);
-void ssd1306_show_buffer(SSD1306_t * dev);
-void ssd1306_set_buffer(SSD1306_t * dev, uint8_t * buffer);
-void ssd1306_get_buffer(SSD1306_t * dev, uint8_t * buffer);
-void ssd1306_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width);
-void ssd1306_display_text(SSD1306_t * dev, int page, char * text, int text_len, bool invert);
-void ssd1306_display_text_x3(SSD1306_t * dev, int page, char * text, int text_len, bool invert);
-void ssd1306_clear_screen(SSD1306_t * dev, bool invert);
-void ssd1306_clear_line(SSD1306_t * dev, int page, bool invert);
-void ssd1306_contrast(SSD1306_t * dev, int contrast);
-void ssd1306_software_scroll(SSD1306_t * dev, int start, int end);
-void ssd1306_scroll_text(SSD1306_t * dev, char * text, int text_len, bool invert);
-void ssd1306_scroll_clear(SSD1306_t * dev);
-void ssd1306_hardware_scroll(SSD1306_t * dev, ssd1306_scroll_type_t scroll);
-void ssd1306_wrap_arround(SSD1306_t * dev, ssd1306_scroll_type_t scroll, int start, int end, int8_t delay);
-void ssd1306_bitmaps(SSD1306_t * dev, int xpos, int ypos, uint8_t * bitmap, int width, int height, bool invert);
-void _ssd1306_pixel(SSD1306_t * dev, int xpos, int ypos, bool invert);
-void _ssd1306_line(SSD1306_t * dev, int x1, int y1, int x2, int y2,  bool invert);
-void ssd1306_invert(uint8_t *buf, size_t blen);
-void ssd1306_flip(uint8_t *buf, size_t blen);
-uint8_t ssd1306_copy_bit(uint8_t src, int srcBits, uint8_t dst, int dstBits);
-uint8_t ssd1306_rotate_byte(uint8_t ch1);
-void ssd1306_fadeout(SSD1306_t * dev);
-void ssd1306_dump(SSD1306_t dev);
-void ssd1306_dump_page(SSD1306_t * dev, int page, int seg);
-
 void i2c_master_init(SSD1306_t * dev, int16_t sda, int16_t scl, int16_t reset);
 void i2c_init(SSD1306_t * dev, int width, int height);
 void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width);
 void i2c_contrast(SSD1306_t * dev, int contrast);
 void i2c_hardware_scroll(SSD1306_t * dev, ssd1306_scroll_type_t scroll);
-
-void spi_master_init(SSD1306_t * dev, int16_t GPIO_MOSI, int16_t GPIO_SCLK, int16_t GPIO_CS, int16_t GPIO_DC, int16_t GPIO_RESET);
-bool spi_master_write_byte(spi_device_handle_t SPIHandle, const uint8_t* Data, size_t DataLength );
-bool spi_master_write_command(SSD1306_t * dev, uint8_t Command );
-bool spi_master_write_data(SSD1306_t * dev, const uint8_t* Data, size_t DataLength );
-void spi_init(SSD1306_t * dev, int width, int height);
-void spi_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width);
-void spi_contrast(SSD1306_t * dev, int contrast);
-void spi_hardware_scroll(SSD1306_t * dev, ssd1306_scroll_type_t scroll);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* MAIN_SSD1306_H_ */
 

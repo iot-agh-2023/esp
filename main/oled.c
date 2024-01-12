@@ -17,7 +17,7 @@ static char const *tag = "oled";
 
 static SSD1306_t dev;
 
-void print(SSD1306_t *dev, int page, char* text, int text_len);
+void print(SSD1306_t *dev, int page, char const* text, int text_len);
 
 void init_display(void) {
 	ESP_LOGI(tag, "CONFIG_SDA_GPIO=%d",CONFIG_SDA_GPIO);
@@ -39,7 +39,7 @@ void init_display(void) {
     i2c_contrast(&dev, 0xff);
 }
 
-void print(SSD1306_t *dev, int page, char* text, int text_len) {
+void print(SSD1306_t *dev, int page, char const* text, int text_len) {
     if (page >= dev->_pages) return;
 	int _text_len = text_len;
 	if (_text_len > 16) _text_len = 16;
