@@ -12,10 +12,7 @@
 #define WIDTH 128
 #define HEIGHT 64
 #define I2C_NUM 0
-// #define OLED_CONTROL_BYTE_CMD_STREAM  0x00
-// #define OLED_CONTROL_BYTE_DATA_STREAM 0x40
 #define I2C_MASTER_FREQ_HZ 400000 /*!< I2C clock of SSD1306 can run at 400 kHz max. */
-
 
 static char const *tag = "oled";
 
@@ -23,7 +20,6 @@ static SSD1306_t dev;
 
 void print(SSD1306_t *dev, int page, char const* text, int text_len);
 void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width);
-
 
 void i2c_master_init(SSD1306_t * dev, int16_t sda, int16_t scl, int16_t reset)
 {
@@ -129,8 +125,6 @@ void init_display(void) {
 	for (int page = 0; page < dev._pages; page++) {
 		print(&dev, page, blank, sizeof(blank));
 	}
-
-    // i2c_contrast(&dev, 0xff);
 }
 
 void print(SSD1306_t *dev, int page, char const* text, int text_len) {
@@ -142,10 +136,8 @@ void print(SSD1306_t *dev, int page, char const* text, int text_len) {
 	uint8_t image[8];
 	for (uint8_t i = 0; i < _text_len; i++) {
 		memcpy(image, font8x8_basic_tr[(uint8_t)text[i]], 8);
-
 		i2c_display_image(dev, page, seg, image, 8);
         memcpy(&dev->_page[page]._segs[seg], image, 8);
-
 		seg = seg + 8;
 	}
 }
