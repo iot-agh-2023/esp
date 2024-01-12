@@ -1,3 +1,5 @@
+#include "oled.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,19 +7,22 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-#include "ssd1306.h"
+// #include "ssd1306.h"
 #include "font8x8_basic.h"
 #include "driver/i2c.h"
 
 #define WIDTH 128
 #define HEIGHT 64
 #define I2C_NUM 0
+#define OLED_CONTROL_BYTE_CMD_STREAM  0x00
+#define OLED_CONTROL_BYTE_DATA_STREAM 0x40
 
 static char const *tag = "oled";
 
 static SSD1306_t dev;
 
 void print(SSD1306_t *dev, int page, char const* text, int text_len);
+void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int width);
 
 void init_display(void) {
 	ESP_LOGI(tag, "CONFIG_SDA_GPIO=%d",CONFIG_SDA_GPIO);
