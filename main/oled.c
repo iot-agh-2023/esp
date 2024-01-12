@@ -49,15 +49,14 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
 	i2c_master_write_byte(cmd, OLED_CMD_DISPLAY_OFF, true);				// AE
-	i2c_master_write_byte(cmd, OLED_CMD_SET_MUX_RATIO, true);			// A8
-	i2c_master_write_byte(cmd, 0x3F, true); // Start at top
-	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_OFFSET, true);		// D3
+	i2c_master_write_byte(cmd, OLED_CMD_SET_MUX_RATIO, true);			// A8 // send pixel rows to handle at once
+	i2c_master_write_byte(cmd, 0x3F, true);
+	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_OFFSET, true);		// D3 // no offset
 	i2c_master_write_byte(cmd, 0x00, true);
-	//i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_DATA_STREAM, true);	// 40
 	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_START_LINE, true);	// 40
-    i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_1, true);		// A1
-	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE, true);		// C8
-	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_CLK_DIV, true);		// D5
+    i2c_master_write_byte(cmd, OLED_CMD_SET_SEGMENT_REMAP_1, true);		// A1 // non flipped
+	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_SCAN_MODE, true);		// C8 // mandatory
+	i2c_master_write_byte(cmd, OLED_CMD_SET_DISPLAY_CLK_DIV, true);		// D5 // display frequency
 	i2c_master_write_byte(cmd, 0x80, true);
 	i2c_master_write_byte(cmd, OLED_CMD_SET_COM_PIN_MAP, true);			// DA
 	i2c_master_write_byte(cmd, 0x12, true);
@@ -146,11 +145,11 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
 
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-	// Lower Column Start Address
+	// Column Start Address
 	i2c_master_write_byte(cmd, (0x00 + columLow), true);
-	// Set Higher Column Start Address
+	// Higher Column Start Address
 	i2c_master_write_byte(cmd, (0x10 + columHigh), true);
-	// Set Page Start Address
+	// Page Start Address
 	i2c_master_write_byte(cmd, 0xB0 | _page, true);
 
 	i2c_master_stop(cmd);
