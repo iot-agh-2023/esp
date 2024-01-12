@@ -51,9 +51,9 @@ void app_main()
             http_ping.state = IDLE;
         }
 
-        printf("Temperature is %d \n", DHT11_read().temperature);
-        printf("Humidity is %d\n", DHT11_read().humidity);
-        printf("Status code is %d\n", DHT11_read().status);
+        // printf("Temperature is %d \n", DHT11_read().temperature);
+        // printf("Humidity is %d\n", DHT11_read().humidity);
+        // printf("Status code is %d\n", DHT11_read().status);
 
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
