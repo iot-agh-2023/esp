@@ -50,7 +50,7 @@ void i2c_init(SSD1306_t * dev, int width, int height) {
 	dev->_height = height;
 	dev->_pages = 8;
 	if (dev->_height == 32) dev->_pages = 4;
-	
+
 	i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
 	i2c_master_start(cmd);
@@ -126,11 +126,11 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 	i2c_master_write_byte(cmd, (dev->_address << 1) | I2C_MASTER_WRITE, true);
 
 	i2c_master_write_byte(cmd, OLED_CONTROL_BYTE_CMD_STREAM, true);
-	// Set Lower Column Start Address for Page Addressing Mode
+	// Lower Column Start Address
 	i2c_master_write_byte(cmd, (0x00 + columLow), true);
-	// Set Higher Column Start Address for Page Addressing Mode
+	// Set Higher Column Start Address
 	i2c_master_write_byte(cmd, (0x10 + columHigh), true);
-	// Set Page Start Address for Page Addressing Mode
+	// Set Page Start Address
 	i2c_master_write_byte(cmd, 0xB0 | _page, true);
 
 	i2c_master_stop(cmd);
@@ -185,7 +185,7 @@ void i2c_hardware_scroll(SSD1306_t * dev, ssd1306_scroll_type_t scroll) {
 		i2c_master_write_byte(cmd, 0x00, true); //
 		i2c_master_write_byte(cmd, 0xFF, true); //
 		i2c_master_write_byte(cmd, OLED_CMD_ACTIVE_SCROLL, true);		// 2F
-	} 
+	}
 
 	if (scroll == SCROLL_LEFT) {
 		i2c_master_write_byte(cmd, OLED_CMD_HORIZONTAL_LEFT, true);		// 27
@@ -196,7 +196,7 @@ void i2c_hardware_scroll(SSD1306_t * dev, ssd1306_scroll_type_t scroll) {
 		i2c_master_write_byte(cmd, 0x00, true); //
 		i2c_master_write_byte(cmd, 0xFF, true); //
 		i2c_master_write_byte(cmd, OLED_CMD_ACTIVE_SCROLL, true);		// 2F
-	} 
+	}
 
 	if (scroll == SCROLL_DOWN) {
 		i2c_master_write_byte(cmd, OLED_CMD_CONTINUOUS_SCROLL, true);	// 29
