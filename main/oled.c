@@ -171,7 +171,7 @@ void i2c_display_image(SSD1306_t * dev, int page, int seg, uint8_t * images, int
 void clear_line(SSD1306_t * dev, int page)
 {
 	char space[16];
-	memset(space, 0x00, sizeof(space));
+	memset(space, 0, sizeof(space));
 	print(dev, page, space, sizeof(space));
 }
 
