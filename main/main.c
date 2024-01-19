@@ -1,11 +1,8 @@
-#define BLE_SERVER 1
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
-#define PROGRAM BLE_SERVER
+#define PROGRAM PROGRAM_NORMAL
 
-#if PROGRAM == BLE_SERVER
-    #include "gatts_server.c"
-#elif PROGRAM == BLE_CLIENT
+#if PROGRAM == BLE_CLIENT
     #include "gattc_client.c"
 #else
 // custom logic
@@ -13,6 +10,7 @@
 #include "network.h"
 #include "button.h"
 #include "dht11.h"
+#include "gatts_server.c"
 // esp libs
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -87,6 +85,7 @@ void init()
 
     DHT11_init(GPIO_NUM_5);
 
+    init_ble();
     init_display();
     init_button();
 

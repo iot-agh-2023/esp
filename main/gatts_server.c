@@ -563,17 +563,8 @@ esp_err_t read_str_from_nvs(const char *key, char *value, size_t max_length)
     return ret;
 }
 
-void app_main(void)
+void init_ble(void)
 {
-    esp_err_t ret;
-
-    /* Initialize NVS. */
-    ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK( ret );
     ESP_ERROR_CHECK(save_str_to_nvs("wifi_ssid", "twoj"));
     ESP_ERROR_CHECK(save_str_to_nvs("wifi_pass", "stary"));
 
@@ -586,7 +577,7 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
+    esp_err_t ret = esp_bt_controller_init(&bt_cfg);
     if (ret) {
         ESP_LOGE(GATTS_TABLE_TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
         return;
