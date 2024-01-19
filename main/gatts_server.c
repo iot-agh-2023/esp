@@ -142,14 +142,14 @@ static const uint16_t GATTS_CHAR_UUID_WIFI_PASS      = 0x33F0;
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
-static const uint8_t char_prop_read                = ESP_GATT_CHAR_PROP_BIT_READ;
+// static const uint8_t char_prop_read                = ESP_GATT_CHAR_PROP_BIT_READ;
 //static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRITE;
 //static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t char_prop_write_indicate      = ESP_GATT_CHAR_PROP_BIT_INDICATE | ESP_GATT_CHAR_PROP_BIT_WRITE;
 //static const uint8_t char_prop_indicate            = ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t temp_ccc[2]                   = {0x00, 0x00};
 static const uint8_t temp_measurement[12]          = {0x02, 0x68, 0x01, 0x00, 0xff, 0xe7, 0x07, 0x0c, 0x07, 0x0c, 0x01, 0x01};
-static const uint8_t temp_type[1]                  = {0x02};
+// static const uint8_t temp_type[1]                  = {0x02};
 
 
 /* Full Database Description - Used to add attributes into the database */
@@ -175,15 +175,32 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(temp_ccc), (uint8_t *)temp_ccc}},
 
+
     /* Characteristic Declaration */
-    [IDX_CHAR_B]      =
+    [IDX_CHAR_B]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_write_indicate}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_B]  =
+    [IDX_CHAR_VAL_B] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_type), (uint8_t *)temp_type}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_measurement), (uint8_t *)temp_measurement}},
+
+    /* Client Characteristic Configuration Descriptor */
+    // [IDX_CHAR_CFG_B]  =
+    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    //   sizeof(uint16_t), sizeof(temp_ccc), (uint8_t *)temp_ccc}},
+
+
+    // /* Characteristic Declaration */
+    // [IDX_CHAR_B]      =
+    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+    //   CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    // /* Characteristic Value */
+    // [IDX_CHAR_VAL_B]  =
+    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    //   GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_type), (uint8_t *)temp_type}},
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -351,47 +368,54 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (!param->write.is_prep){
                 // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
-                esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
-                ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT value: %s", param->write.value);
-                if (heart_rate_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
-                    uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
-                    if (descr_value == 0x0001){
-                        ESP_LOGI(GATTS_TABLE_TAG, "notify enable");
-                        uint8_t notify_data[15];
-                        for (int i = 0; i < sizeof(notify_data); ++i)
-                        {
-                            notify_data[i] = i % 0xff;
-                        }
-                        //the size of notify_data[] need less than MTU size
-                        esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                                                sizeof(notify_data), notify_data, false);
-                    }else if (descr_value == 0x0002){
-                        ESP_LOGI(GATTS_TABLE_TAG, "indicate enable");
-                        uint8_t indicate_data[12];
-                        indicate_data[11] = 0x01; // seconds
-                        indicate_data[10] = 0x01; // minuts
-                        indicate_data[9] = 0x0c; // hours
-                        indicate_data[8] = 0x07; // day
-                        indicate_data[7] = 0x0c; // month
-                        indicate_data[6] = 0x07; // x * 256 days
-                        indicate_data[5] = 0xe7; // flat days
-                        indicate_data[4] = 0xff; // temp irrelevant
-                        indicate_data[3] = 0x00; // temp irrelevant
-                        indicate_data[2] = 0x01; // temp
-                        indicate_data[1] = 0x68; // temp
-                        indicate_data[0] = 0x02; // flags
-                        //the size of indicate_data[] need less than MTU size
-                        esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                                            sizeof(indicate_data), indicate_data, true);
-                    }
-                    else if (descr_value == 0x0000){
-                        ESP_LOGI(GATTS_TABLE_TAG, "notify/indicate disable ");
-                    }else{
-                        ESP_LOGE(GATTS_TABLE_TAG, "unknown descr value");
-                        esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
-                    }
+                // esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+                if (param->write.handle == 42) {
+                    ESP_LOGI(GATTS_TABLE_TAG, "setting SSID: %s", param->write.value);
+
+                } else if (param->write.handle == 45) {
+                    ESP_LOGI(GATTS_TABLE_TAG, "setting PASS: %s", param->write.value);
 
                 }
+
+                // if (heart_rate_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
+                //     uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
+                //     if (descr_value == 0x0001){
+                //         ESP_LOGI(GATTS_TABLE_TAG, "notify enable");
+                //         uint8_t notify_data[15];
+                //         for (int i = 0; i < sizeof(notify_data); ++i)
+                //         {
+                //             notify_data[i] = i % 0xff;
+                //         }
+                //         //the size of notify_data[] need less than MTU size
+                //         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
+                //                                 sizeof(notify_data), notify_data, false);
+                //     }else if (descr_value == 0x0002){
+                //         ESP_LOGI(GATTS_TABLE_TAG, "indicate enable");
+                //         uint8_t indicate_data[12];
+                //         indicate_data[11] = 0x01; // seconds
+                //         indicate_data[10] = 0x01; // minuts
+                //         indicate_data[9] = 0x0c; // hours
+                //         indicate_data[8] = 0x07; // day
+                //         indicate_data[7] = 0x0c; // month
+                //         indicate_data[6] = 0x07; // x * 256 days
+                //         indicate_data[5] = 0xe7; // flat days
+                //         indicate_data[4] = 0xff; // temp irrelevant
+                //         indicate_data[3] = 0x00; // temp irrelevant
+                //         indicate_data[2] = 0x01; // temp
+                //         indicate_data[1] = 0x68; // temp
+                //         indicate_data[0] = 0x02; // flags
+                //         //the size of indicate_data[] need less than MTU size
+                //         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
+                //                             sizeof(indicate_data), indicate_data, true);
+                //     }
+                //     else if (descr_value == 0x0000){
+                //         ESP_LOGI(GATTS_TABLE_TAG, "notify/indicate disable ");
+                //     }else{
+                //         ESP_LOGE(GATTS_TABLE_TAG, "unknown descr value");
+                //         esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+                //     }
+
+                // }
                 /* send response when param->write.need_rsp is true*/
                 if (param->write.need_rsp){
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
