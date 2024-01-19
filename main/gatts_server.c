@@ -512,6 +512,57 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
     } while (0);
 }
 
+esp_err_t save_str_to_nvs(const char *key, const char *value)
+{
+    nvs_handle_t nvs;
+    esp_err_t ret = nvs_open("iot", NVS_READWRITE, &nvs);
+    if (ret != ESP_OK)
+    {
+        return ret;
+    }
+
+    ret = nvs_set_str(nvs, key, value);
+    if (ret == ESP_OK)
+    {
+        ret = nvs_commit(nvs);
+    }
+
+    nvs_close(nvs);
+    return ret;
+}
+
+esp_err_t read_str_from_nvs(const char *key, char *value, size_t max_length)
+{
+    nvs_handle_t nvs;
+    esp_err_t ret = nvs_open("iot", NVS_READONLY, &nvs);
+    if (ret != ESP_OK)
+    {
+        printf("Failed to open NVS\n");
+        return ret;
+    }
+
+    size_t required_size;
+    ret = nvs_get_str(nvs, key, NULL, &required_size);
+    if (ret == ESP_OK)
+    {
+        if (required_size <= max_length)
+        {
+            ret = nvs_get_str(nvs, key, value, &required_size);
+        }
+        else
+        {
+            ret = ESP_ERR_NVS_INVALID_LENGTH;
+        }
+    }
+    else
+    {
+        printf("Failed to get NVS\n");
+    }
+
+    nvs_close(nvs);
+    return ret;
+}
+
 void app_main(void)
 {
     esp_err_t ret;
@@ -523,6 +574,14 @@ void app_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+    ESP_ERROR_CHECK(save_str_to_nvs("wifi_ssid", "twoj"));
+    ESP_ERROR_CHECK(save_str_to_nvs("wifi_pass", "stary"));
+
+    char ssid[100];
+    char pass[100];
+    ESP_ERROR_CHECK(read_str_from_nvs("wifi_ssid", ssid, 100));
+    ESP_ERROR_CHECK(read_str_from_nvs("wifi_pass", pass, 100));
+    ESP_LOGI(GATTS_TABLE_TAG, "ssid: %s, pass: %s", ssid, pass);
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
