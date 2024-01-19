@@ -59,27 +59,6 @@ typedef struct {
 static prepare_type_env_t prepare_write_env;
 
 //#define CONFIG_SET_RAW_ADV_DATA
-#ifdef CONFIG_SET_RAW_ADV_DATA
-static uint8_t raw_adv_data[] = {
-        /* flags */
-        0x02, 0x01, 0x06,
-        /* tx power*/
-        0x02, 0x0a, 0xeb,
-        /* service uuid */
-        0x03, 0x03, 0xFF, 0x00,
-        /* device name */
-        0x0f, 0x09, 'E', 'S', 'P', '_', 'G', 'A', 'T', 'T', 'S', '_', 'D','E', 'M', 'O'
-};
-static uint8_t raw_scan_rsp_data[] = {
-        /* flags */
-        0x02, 0x01, 0x06,
-        /* tx power */
-        0x02, 0x0a, 0xeb,
-        /* service uuid */
-        0x03, 0x03, 0xFF,0x00
-};
-
-#else
 static uint8_t service_uuid[16] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
     //first uuid, 16bit, [12],[13] is the value
@@ -119,7 +98,6 @@ static esp_ble_adv_data_t scan_rsp_data = {
     .p_service_uuid      = service_uuid,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
-#endif /* CONFIG_SET_RAW_ADV_DATA */
 
 static esp_ble_adv_params_t adv_params = {
     .adv_int_min         = 0x20,
@@ -157,14 +135,14 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 };
 
 /* Service */
-static const uint16_t GATTS_SERVICE_UUID_THERMOMETER        = 0x1809;
-static const uint16_t GATTS_CHAR_UUID_TEMPERATURE_M         = 0x2A1C;
-static const uint16_t GATTS_CHAR_UUID_TEMPERATURE_TYPE      = 0x2A1D;
+static const uint16_t GATTS_SERVICE_UUID_WIFI_SETTER = 0xBE39;
+static const uint16_t GATTS_CHAR_UUID_WIFI_SSID      = 0x1890;
+static const uint16_t GATTS_CHAR_UUID_WIFI_PASS      = 0x33F0;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
-static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ;
+static const uint8_t char_prop_read                = ESP_GATT_CHAR_PROP_BIT_READ;
 //static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRITE;
 //static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t char_prop_write_indicate      = ESP_GATT_CHAR_PROP_BIT_INDICATE | ESP_GATT_CHAR_PROP_BIT_WRITE;
@@ -180,7 +158,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     // Service Declaration
     [IDX_SVC]        =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
-      sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_THERMOMETER), (uint8_t *)&GATTS_SERVICE_UUID_THERMOMETER}},
+      sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_WIFI_SETTER), (uint8_t *)&GATTS_SERVICE_UUID_WIFI_SETTER}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_A]     =
@@ -189,7 +167,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
     /* Characteristic Value */
     [IDX_CHAR_VAL_A] =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEMPERATURE_M, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_SSID, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_measurement), (uint8_t *)temp_measurement}},
 
     /* Client Characteristic Configuration Descriptor */
@@ -204,7 +182,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
     /* Characteristic Value */
     [IDX_CHAR_VAL_B]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEMPERATURE_TYPE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_type), (uint8_t *)temp_type}},
 };
 
@@ -374,6 +352,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+                ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT value: %s", param->write.value);
                 if (heart_rate_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
                     uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
                     if (descr_value == 0x0001){
