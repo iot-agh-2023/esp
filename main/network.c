@@ -51,6 +51,38 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 	}
 }
 
+esp_err_t read_str_from_nvs(const char *key, char *value, size_t max_length)
+{
+    nvs_handle_t nvs;
+    esp_err_t ret = nvs_open("iot", NVS_READONLY, &nvs);
+    if (ret != ESP_OK)
+    {
+        printf("Failed to open NVS\n");
+        return ret;
+    }
+
+    size_t required_size;
+    ret = nvs_get_str(nvs, key, NULL, &required_size);
+    if (ret == ESP_OK)
+    {
+        if (required_size <= max_length)
+        {
+            ret = nvs_get_str(nvs, key, value, &required_size);
+        }
+        else
+        {
+            ret = ESP_ERR_NVS_INVALID_LENGTH;
+        }
+    }
+    else
+    {
+        printf("Failed to get NVS\n");
+    }
+
+    nvs_close(nvs);
+    return ret;
+}
+
 esp_err_t wifi_init_sta()
 {
 	static int initialized = false;
@@ -77,12 +109,29 @@ esp_err_t wifi_init_sta()
 	ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
 	ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
 
+    // ESP_ERROR_CHECK(read_str_from_nvs("wifi_ssid", ssid, 100));
+    // ESP_ERROR_CHECK(read_str_from_nvs("wifi_pass", pass, 100));
+    // ESP_LOGI(GATTS_TABLE_TAG, "ssid: %s, pass: %s", ssid, pass);
+
+    char ssid[100] = "";
+    ESP_ERROR_CHECK(read_str_from_nvs("wifi_ssid", ssid, 100));
+
+    char pass[100] = "";
+    ESP_ERROR_CHECK(read_str_from_nvs("wifi_pass", pass, 100));
+
 	wifi_config_t wifi_config = {
 		.sta = {
-			.ssid = CONFIG_ESP_WIFI_SSID,
-			.password = CONFIG_ESP_WIFI_PASSWORD
+			.ssid = "",
+			.password = ""
 		},
 	};
+    // printf("|%s|: |%s|\n", ssid, pass);
+    // printf("|%s|: |%s|\n", wifi_config.sta.ssid, wifi_config.sta.password);
+    memcpy(wifi_config.sta.ssid, ssid, 100);
+    memcpy(wifi_config.sta.password, pass, 100);
+    // printf("|%s|: |%s|\n", ssid, pass);
+    // printf("|%s|: |%s|\n", wifi_config.sta.ssid, wifi_config.sta.password);
+
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
 	ESP_ERROR_CHECK(esp_wifi_start() );

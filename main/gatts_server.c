@@ -13,7 +13,7 @@
 * data.
 *
 ****************************************************************************/
-
+#include "gatts_server.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -48,8 +48,29 @@
 #define SCAN_RSP_CONFIG_FLAG        (1 << 1)
 
 static uint8_t adv_config_done       = 0;
+static bool ssid_changed = false;
+static bool pass_changed = false;
 
 uint16_t heart_rate_handle_table[HRS_IDX_NB];
+
+esp_err_t save_str_to_nvs(const char *key, const char *value)
+{
+    nvs_handle_t nvs;
+    esp_err_t ret = nvs_open("iot", NVS_READWRITE, &nvs);
+    if (ret != ESP_OK)
+    {
+        return ret;
+    }
+
+    ret = nvs_set_str(nvs, key, value);
+    if (ret == ESP_OK)
+    {
+        ret = nvs_commit(nvs);
+    }
+
+    nvs_close(nvs);
+    return ret;
+}
 
 typedef struct {
     uint8_t                 *prepare_buf;
@@ -368,54 +389,22 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (!param->write.is_prep){
                 // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
+                const int WIFI_SSID_HANDLE = 42;
+                const int WIFI_PASS_HANDLE = 45;
                 // esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
-                if (param->write.handle == 42) {
+                if (param->write.handle == WIFI_SSID_HANDLE) {
                     ESP_LOGI(GATTS_TABLE_TAG, "setting SSID: %s", param->write.value);
-
-                } else if (param->write.handle == 45) {
+                    ESP_ERROR_CHECK(save_str_to_nvs("wifi_ssid", (char*)param->write.value));
+                    ssid_changed = true;
+                } else if (param->write.handle == WIFI_PASS_HANDLE) {
                     ESP_LOGI(GATTS_TABLE_TAG, "setting PASS: %s", param->write.value);
-
+                    ESP_ERROR_CHECK(save_str_to_nvs("wifi_pass", (char*)param->write.value));
+                    pass_changed = true;
                 }
 
-                // if (heart_rate_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
-                //     uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
-                //     if (descr_value == 0x0001){
-                //         ESP_LOGI(GATTS_TABLE_TAG, "notify enable");
-                //         uint8_t notify_data[15];
-                //         for (int i = 0; i < sizeof(notify_data); ++i)
-                //         {
-                //             notify_data[i] = i % 0xff;
-                //         }
-                //         //the size of notify_data[] need less than MTU size
-                //         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                //                                 sizeof(notify_data), notify_data, false);
-                //     }else if (descr_value == 0x0002){
-                //         ESP_LOGI(GATTS_TABLE_TAG, "indicate enable");
-                //         uint8_t indicate_data[12];
-                //         indicate_data[11] = 0x01; // seconds
-                //         indicate_data[10] = 0x01; // minuts
-                //         indicate_data[9] = 0x0c; // hours
-                //         indicate_data[8] = 0x07; // day
-                //         indicate_data[7] = 0x0c; // month
-                //         indicate_data[6] = 0x07; // x * 256 days
-                //         indicate_data[5] = 0xe7; // flat days
-                //         indicate_data[4] = 0xff; // temp irrelevant
-                //         indicate_data[3] = 0x00; // temp irrelevant
-                //         indicate_data[2] = 0x01; // temp
-                //         indicate_data[1] = 0x68; // temp
-                //         indicate_data[0] = 0x02; // flags
-                //         //the size of indicate_data[] need less than MTU size
-                //         esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, heart_rate_handle_table[IDX_CHAR_VAL_A],
-                //                             sizeof(indicate_data), indicate_data, true);
-                //     }
-                //     else if (descr_value == 0x0000){
-                //         ESP_LOGI(GATTS_TABLE_TAG, "notify/indicate disable ");
-                //     }else{
-                //         ESP_LOGE(GATTS_TABLE_TAG, "unknown descr value");
-                //         esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
-                //     }
-
-                // }
+                if (ssid_changed && pass_changed) {
+                    esp_restart();
+                }
                 /* send response when param->write.need_rsp is true*/
                 if (param->write.need_rsp){
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
@@ -512,68 +501,8 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
     } while (0);
 }
 
-esp_err_t save_str_to_nvs(const char *key, const char *value)
-{
-    nvs_handle_t nvs;
-    esp_err_t ret = nvs_open("iot", NVS_READWRITE, &nvs);
-    if (ret != ESP_OK)
-    {
-        return ret;
-    }
-
-    ret = nvs_set_str(nvs, key, value);
-    if (ret == ESP_OK)
-    {
-        ret = nvs_commit(nvs);
-    }
-
-    nvs_close(nvs);
-    return ret;
-}
-
-esp_err_t read_str_from_nvs(const char *key, char *value, size_t max_length)
-{
-    nvs_handle_t nvs;
-    esp_err_t ret = nvs_open("iot", NVS_READONLY, &nvs);
-    if (ret != ESP_OK)
-    {
-        printf("Failed to open NVS\n");
-        return ret;
-    }
-
-    size_t required_size;
-    ret = nvs_get_str(nvs, key, NULL, &required_size);
-    if (ret == ESP_OK)
-    {
-        if (required_size <= max_length)
-        {
-            ret = nvs_get_str(nvs, key, value, &required_size);
-        }
-        else
-        {
-            ret = ESP_ERR_NVS_INVALID_LENGTH;
-        }
-    }
-    else
-    {
-        printf("Failed to get NVS\n");
-    }
-
-    nvs_close(nvs);
-    return ret;
-}
-
 void init_ble(void)
 {
-    ESP_ERROR_CHECK(save_str_to_nvs("wifi_ssid", "twoj"));
-    ESP_ERROR_CHECK(save_str_to_nvs("wifi_pass", "stary"));
-
-    char ssid[100];
-    char pass[100];
-    ESP_ERROR_CHECK(read_str_from_nvs("wifi_ssid", ssid, 100));
-    ESP_ERROR_CHECK(read_str_from_nvs("wifi_pass", pass, 100));
-    ESP_LOGI(GATTS_TABLE_TAG, "ssid: %s, pass: %s", ssid, pass);
-
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();

@@ -10,7 +10,7 @@
 #include "network.h"
 #include "button.h"
 #include "dht11.h"
-#include "gatts_server.c"
+#include "gatts_server.h"
 // esp libs
 #include "esp_wifi.h"
 #include "esp_event.h"
