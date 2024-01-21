@@ -1,7 +1,7 @@
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
 #define MQTT_CLIENT 4
-#define PROGRAM MQTT_CLIENT
+#define PROGRAM PROGRAM_NORMAL
 
 #if PROGRAM == BLE_CLIENT
     #include "gattc_client.c"
@@ -14,6 +14,7 @@
 #include "button.h"
 #include "dht11.h"
 #include "gatts_server.h"
+#include "mqtt.h"
 // esp libs
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -51,10 +52,6 @@ void app_main()
             free(http_ping.rs_data);
             http_ping.state = IDLE;
         }
-
-        // printf("Temperature is %d \n", DHT11_read().temperature);
-        // printf("Humidity is %d\n", DHT11_read().humidity);
-        // printf("Status code is %d\n", DHT11_read().status);
 
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
@@ -99,6 +96,8 @@ void init()
 		while(1) { vTaskDelay(1000); }
 	}
     display_text(0, "WIFI: " CONFIG_ESP_WIFI_SSID);
+
+    mqtt_app_start();
 }
 
 void wifi_sanity_check() {
