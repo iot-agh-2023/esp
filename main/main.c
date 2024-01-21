@@ -1,9 +1,12 @@
 #define BLE_CLIENT 2
 #define PROGRAM_NORMAL 3
-#define PROGRAM PROGRAM_NORMAL
+#define MQTT_CLIENT 4
+#define PROGRAM MQTT_CLIENT
 
 #if PROGRAM == BLE_CLIENT
     #include "gattc_client.c"
+#elif PROGRAM == MQTT_CLIENT
+    #include "mqtt_main.c"
 #else
 // custom logic
 #include "oled.h"
