@@ -70,29 +70,16 @@ void IRAM_ATTR gpio_isr_handler(void* arg) {
     }
 }
 
-// void init_gpio(void) {
-//     gpio_config_t io_conf;
-
-//     //interrupt of falling edge
-//     io_conf.intr_type = 3;
-//     io_conf.pin_bit_mask = (1<<GPIO_INPUT);
-//     io_conf.mode = GPIO_MODE_INPUT;
-//     io_conf.pull_up_en = 1;
-//     io_conf.pull_down_en = 0;
-//     gpio_config(&io_conf);
-
-//     //install gpio isr service
-//     gpio_install_isr_service(0); // no flags
-//     //hook isr handler for specific gpio pin
-//     gpio_isr_handler_add(GPIO_INPUT, gpio_isr_handler, (void*) GPIO_INPUT);
-// }
+void play_theme();
+void play_march(uint8_t longplay);
 
 void sound(int gpio_num,uint32_t freq,uint32_t duration) {
-    printf("bruh");
+    // printf("bruh");
 	ledc_timer_config_t timer_conf;
 	timer_conf.speed_mode = GPIO_OUTPUT_SPEED;
 	timer_conf.timer_num  = LEDC_TIMER_0;
 	timer_conf.freq_hz    = freq;
+    timer_conf.duty_resolution = 10; // 10 - gra, 20 - nie gra
 	ledc_timer_config(&timer_conf);
 
 	ledc_channel_config_t ledc_conf;
@@ -106,14 +93,68 @@ void sound(int gpio_num,uint32_t freq,uint32_t duration) {
 	ledc_channel_config(&ledc_conf);
 
 	// start
-    ledc_set_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0, 0x7F); // 12% duty - play here for your speaker or buzzer
+    /*
+    0x0 nie ma
+    0xF buczy
+    0x3F buczy
+    0xFF jest jakby ciszej albo wyzej
+    0xFFFF nie dziala
+    */
+    ledc_set_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0, 0xF);
     ledc_update_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0);
 	vTaskDelay(duration/portTICK_PERIOD_MS);
 	// stop
     ledc_set_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0, 0);
     ledc_update_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0);
-
 }
+
+void gpio_task(void *pvParameters) {
+	EventBits_t bits;
+
+	uint32_t loop=0;
+
+	alarm_eventgroup = xEventGroupCreate();
+    // init_gpio();
+
+	ESP_LOGI(TAG, "Starting");
+    /*
+    10, 100, 300, 2000 - buczy tak samo
+    */
+    vTaskDelay(200/portTICK_PERIOD_MS);
+    sound(GPIO_OUTPUT, 10, 1000);
+    // vTaskDelay(200/portTICK_PERIOD_MS);
+    // sound(GPIO_OUTPUT, 100, 1000);
+    vTaskDelay(200/portTICK_PERIOD_MS);
+    sound(GPIO_OUTPUT, 300, 1000);
+    vTaskDelay(200/portTICK_PERIOD_MS);
+    sound(GPIO_OUTPUT, 2000, 1000);
+    vTaskDelay(200/portTICK_PERIOD_MS);
+    sound(GPIO_OUTPUT, 200000, 1000);
+	ESP_LOGI(TAG, "Stopping");
+
+	while (1) {
+        vTaskDelay(100000/portTICK_PERIOD_MS);
+        // play_march(0);
+        // play_theme();
+		// bits=xEventGroupWaitBits(alarm_eventgroup, GPIO_SENSE_BIT,pdTRUE, pdFALSE, 60000 / portTICK_PERIOD_MS); // max wait 60s
+        // bits = 1;
+		// if(bits!=0) {
+		// 	if (loop%2==0) {
+		// 		play_march(0);
+		// 	} else {
+		// 		play_theme();
+		// 	}
+	    // 	xEventGroupClearBits(alarm_eventgroup, GPIO_SENSE_BIT);
+		// }
+
+		loop++;
+	}
+
+	ESP_LOGI(TAG, "All done!");
+
+	vTaskDelete(NULL);
+}
+
 
 // based on https://wiki.mikrotik.com/wiki/Super_Mario_Theme
 void play_theme() {
@@ -263,34 +304,4 @@ void play_march(uint8_t longplay) {
 		sound(GPIO_OUTPUT,a, 650);
 		//end of the song
     }
-}
-
-void gpio_task(void *pvParameters) {
-	EventBits_t bits;
-
-	uint32_t loop=0;
-
-	alarm_eventgroup = xEventGroupCreate();
-    init_gpio();
-
-	ESP_LOGI(TAG, "Starting");
-
-	while (1) {
-		// bits=xEventGroupWaitBits(alarm_eventgroup, GPIO_SENSE_BIT,pdTRUE, pdFALSE, 60000 / portTICK_PERIOD_MS); // max wait 60s
-        bits = 1;
-		if(bits!=0) {
-			if (loop%2==0) {
-				play_march(0);
-			} else {
-				play_theme();
-			}
-	    	xEventGroupClearBits(alarm_eventgroup, GPIO_SENSE_BIT);
-		}
-
-		loop++;
-	}
-
-	ESP_LOGI(TAG, "All done!");
-
-	vTaskDelete(NULL);
 }
