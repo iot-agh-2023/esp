@@ -2,7 +2,7 @@
 #define PROGRAM_NORMAL 3
 #define MQTT_CLIENT 4
 #define PROGRAM_BUZZER 5
-#define PROGRAM PROGRAM_BUZZER
+#define PROGRAM PROGRAM_NORMAL
 
 #if PROGRAM == BLE_CLIENT
     #include "gattc_client.c"
@@ -18,6 +18,7 @@
 #include "dht11.h"
 #include "gatts_server.h"
 #include "mqtt.h"
+#include "gpio_task.h"
 // esp libs
 #include "esp_wifi.h"
 #include "esp_event.h"
@@ -60,6 +61,7 @@ void app_main()
 
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
+            xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 5, NULL);
             if (is_wifi_connected() && http_ping.state == IDLE) {
                 // http_ping.url = "http://iot-server.glitch.me/ping";
                 http_ping.url = "http://192.168.137.1:3000/ping";

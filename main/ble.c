@@ -14,7 +14,7 @@ static void gatts_profile_sensor_event_handler(esp_gatts_cb_event_t event, esp_g
 #define GATTS_DESCR_UUID_TEST_A     0x3333
 #define GATTS_NUM_HANDLE_TEST_A     4
 
-#define DEVICE_NAME            "COVID_BY_5G_DISTRIBUTOR"
+#define DEVICE_NAME            "BLE_DEVICE"
 #define TEST_MANUFACTURER_DATA_LEN  17
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 0x40

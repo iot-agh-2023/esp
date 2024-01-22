@@ -31,29 +31,8 @@
 
 #include "gpio_task.h"
 
-#define c 261
-#define d 294
-#define e 329
-#define f 349
-#define g 391
-#define gS 415
-#define a 440
-#define aS 455
-#define b 466
-#define cH 523
-#define cSH 554
-#define dH 587
-#define dSH 622
-#define eH 659
-#define fH 698
-#define fSH 740
-#define gH 784
-#define gSH 830
-#define aH 880
-
 #define GPIO_INPUT     0
 #define GPIO_OUTPUT    18
-// #define GPIO_OUTPUT_SPEED LEDC_LOW_SPEED_MODE // back too old git commit :-(
 #define GPIO_OUTPUT_SPEED LEDC_HIGH_SPEED_MODE
 
 #define TAG "BUZZER"
@@ -69,9 +48,6 @@ void IRAM_ATTR gpio_isr_handler(void* arg) {
     	xEventGroupSetBitsFromISR(alarm_eventgroup, GPIO_SENSE_BIT, &xHigherPriorityTaskWoken);
     }
 }
-
-void play_theme();
-void play_march(uint8_t longplay);
 
 void sound(int gpio_num,uint32_t freq,uint32_t duration) {
     // printf("bruh");
@@ -93,13 +69,6 @@ void sound(int gpio_num,uint32_t freq,uint32_t duration) {
 	ledc_channel_config(&ledc_conf);
 
 	// start
-    /*
-    0x0 nie ma
-    0xF buczy
-    0x3F buczy
-    0xFF jest jakby ciszej albo wyzej
-    0xFFFF nie dziala
-    */
     ledc_set_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0, 0xF);
     ledc_update_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0);
 	vTaskDelay(duration/portTICK_PERIOD_MS);
@@ -114,194 +83,21 @@ void gpio_task(void *pvParameters) {
 	uint32_t loop=0;
 
 	alarm_eventgroup = xEventGroupCreate();
-    // init_gpio();
 
 	ESP_LOGI(TAG, "Starting");
     /*
     10, 100, 300, 2000 - buczy tak samo
     */
+    sound(GPIO_OUTPUT, 10, 200);
     vTaskDelay(200/portTICK_PERIOD_MS);
-    sound(GPIO_OUTPUT, 10, 1000);
-    // vTaskDelay(200/portTICK_PERIOD_MS);
-    // sound(GPIO_OUTPUT, 100, 1000);
-    vTaskDelay(200/portTICK_PERIOD_MS);
-    sound(GPIO_OUTPUT, 300, 1000);
-    vTaskDelay(200/portTICK_PERIOD_MS);
-    sound(GPIO_OUTPUT, 2000, 1000);
-    vTaskDelay(200/portTICK_PERIOD_MS);
-    sound(GPIO_OUTPUT, 200000, 1000);
-	ESP_LOGI(TAG, "Stopping");
+    sound(GPIO_OUTPUT, 10, 200);
 
 	while (1) {
         vTaskDelay(100000/portTICK_PERIOD_MS);
-        // play_march(0);
-        // play_theme();
-		// bits=xEventGroupWaitBits(alarm_eventgroup, GPIO_SENSE_BIT,pdTRUE, pdFALSE, 60000 / portTICK_PERIOD_MS); // max wait 60s
-        // bits = 1;
-		// if(bits!=0) {
-		// 	if (loop%2==0) {
-		// 		play_march(0);
-		// 	} else {
-		// 		play_theme();
-		// 	}
-	    // 	xEventGroupClearBits(alarm_eventgroup, GPIO_SENSE_BIT);
-		// }
-
 		loop++;
 	}
 
 	ESP_LOGI(TAG, "All done!");
 
 	vTaskDelete(NULL);
-}
-
-
-// based on https://wiki.mikrotik.com/wiki/Super_Mario_Theme
-void play_theme() {
-	sound(GPIO_OUTPUT,660,100);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,660,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,660,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,510,100);
-	vTaskDelay(100/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,660,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,770,100);
-	vTaskDelay(550/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,380,100);
-	vTaskDelay(575/portTICK_PERIOD_MS);
-
-	sound(GPIO_OUTPUT,510,100);
-	vTaskDelay(450/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,380,100);
-	vTaskDelay(400/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,320,100);
-	vTaskDelay(500/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,440,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,480,80);
-	vTaskDelay(330/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,450,100);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,430,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,380,100);
-	vTaskDelay(200/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,660,80);
-	vTaskDelay(200/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,760,50);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,860,100);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,700,80);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,760,50);
-	vTaskDelay(350/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,660,80);
-	vTaskDelay(300/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,520,80);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,580,80);
-	vTaskDelay(150/portTICK_PERIOD_MS);
-	sound(GPIO_OUTPUT,480,80);
-	vTaskDelay(500/portTICK_PERIOD_MS);
-}
-// based on http://processors.wiki.ti.com/index.php/Playing_The_Imperial_March#Code
-// original composed by John Williams for the film Star Wars: The Empire Strikes Back
-void play_march(uint8_t longplay) {
-
-    sound(GPIO_OUTPUT,a, 500);
-    sound(GPIO_OUTPUT,a, 500);
-    sound(GPIO_OUTPUT,a, 500);
-    sound(GPIO_OUTPUT,f, 350);
-    sound(GPIO_OUTPUT,cH, 150);
-    sound(GPIO_OUTPUT,a, 500);
-    sound(GPIO_OUTPUT,f, 350);
-    sound(GPIO_OUTPUT,cH, 150);
-    sound(GPIO_OUTPUT,a, 650);
-
-    vTaskDelay(150/portTICK_PERIOD_MS);
-    //end of first bit
-
-    sound(GPIO_OUTPUT,eH, 500);
-    sound(GPIO_OUTPUT,eH, 500);
-    sound(GPIO_OUTPUT,eH, 500);
-    sound(GPIO_OUTPUT,fH, 350);
-    sound(GPIO_OUTPUT,cH, 150);
-    sound(GPIO_OUTPUT,gS, 500);
-    sound(GPIO_OUTPUT,f, 350);
-    sound(GPIO_OUTPUT,cH, 150);
-    sound(GPIO_OUTPUT,a, 650);
-
-    vTaskDelay(150/portTICK_PERIOD_MS);
-    //end of second bit...
-
-    sound(GPIO_OUTPUT,aH, 500);
-    sound(GPIO_OUTPUT,a, 300);
-    sound(GPIO_OUTPUT,a, 150);
-    sound(GPIO_OUTPUT,aH, 400);
-    sound(GPIO_OUTPUT,gSH, 200);
-    sound(GPIO_OUTPUT,gH, 200);
-    sound(GPIO_OUTPUT,fSH, 125);
-    sound(GPIO_OUTPUT,fH, 125);
-    sound(GPIO_OUTPUT,fSH, 250);
-
-    vTaskDelay(250/portTICK_PERIOD_MS);
-
-    sound(GPIO_OUTPUT,aS, 250);
-    sound(GPIO_OUTPUT,dSH, 400);
-    sound(GPIO_OUTPUT,dH, 200);
-    sound(GPIO_OUTPUT,cSH, 200);
-    sound(GPIO_OUTPUT,cH, 125);
-    sound(GPIO_OUTPUT,b, 125);
-    sound(GPIO_OUTPUT,cH, 250);
-
-    vTaskDelay(250/portTICK_PERIOD_MS);
-
-    sound(GPIO_OUTPUT,f, 125);
-    sound(GPIO_OUTPUT,gS, 500);
-    sound(GPIO_OUTPUT,f, 375);
-    sound(GPIO_OUTPUT,a, 125);
-    sound(GPIO_OUTPUT,cH, 500);
-    sound(GPIO_OUTPUT,a, 375);
-    sound(GPIO_OUTPUT,cH, 125);
-    sound(GPIO_OUTPUT,eH, 650);
-
-    //end of third bit... (Though it doesn't play well)
-    //let's repeat it
-    if (longplay>=1) {
-		sound(GPIO_OUTPUT,aH, 500);
-		sound(GPIO_OUTPUT,a, 300);
-		sound(GPIO_OUTPUT,a, 150);
-		sound(GPIO_OUTPUT,aH, 400);
-		sound(GPIO_OUTPUT,gSH, 200);
-		sound(GPIO_OUTPUT,gH, 200);
-		sound(GPIO_OUTPUT,fSH, 125);
-		sound(GPIO_OUTPUT,fH, 125);
-		sound(GPIO_OUTPUT,fSH, 250);
-
-		vTaskDelay(250/portTICK_PERIOD_MS);
-
-		sound(GPIO_OUTPUT,aS, 250);
-		sound(GPIO_OUTPUT,dSH, 400);
-		sound(GPIO_OUTPUT,dH, 200);
-		sound(GPIO_OUTPUT,cSH, 200);
-		sound(GPIO_OUTPUT,cH, 125);
-		sound(GPIO_OUTPUT,b, 125);
-		sound(GPIO_OUTPUT,cH, 250);
-
-		vTaskDelay(250/portTICK_PERIOD_MS);
-
-		sound(GPIO_OUTPUT,f, 250);
-		sound(GPIO_OUTPUT,gS, 500);
-		sound(GPIO_OUTPUT,f, 375);
-		sound(GPIO_OUTPUT,cH, 125);
-		sound(GPIO_OUTPUT,a, 500);
-		sound(GPIO_OUTPUT,f, 375);
-		sound(GPIO_OUTPUT,cH, 125);
-		sound(GPIO_OUTPUT,a, 650);
-		//end of the song
-    }
 }
