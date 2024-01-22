@@ -14,7 +14,7 @@ void init_button(void)
         .mode = GPIO_MODE_INPUT,                   // Set as Input mode
         .pull_up_en = GPIO_PULLUP_ENABLE,          // Enable the internal pull-up resistor
         .pull_down_en = GPIO_PULLDOWN_DISABLE,     // Disable the internal pull-down resistor
-        .intr_type = GPIO_INTR_DISABLE             // Disable GPIO interrupts // TODO co to jest
+        .intr_type = GPIO_INTR_DISABLE             // Disable GPIO interrupts
     };
 
     esp_err_t ret = gpio_config(&io_conf);
