@@ -163,15 +163,9 @@ static const uint16_t GATTS_CHAR_UUID_WIFI_PASS      = 0x33F0;
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
-// static const uint8_t char_prop_read                = ESP_GATT_CHAR_PROP_BIT_READ;
-//static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRITE;
-//static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-static const uint8_t char_prop_write_indicate      = ESP_GATT_CHAR_PROP_BIT_INDICATE | ESP_GATT_CHAR_PROP_BIT_WRITE;
-//static const uint8_t char_prop_indicate            = ESP_GATT_CHAR_PROP_BIT_INDICATE;
-static const uint8_t temp_ccc[2]                   = {0x00, 0x00};
-static const uint8_t temp_measurement[12]          = {0x02, 0x68, 0x01, 0x00, 0xff, 0xe7, 0x07, 0x0c, 0x07, 0x0c, 0x01, 0x01};
-// static const uint8_t temp_type[1]                  = {0x02};
-
+static const uint8_t char_prop_write_indicate      = ESP_GATT_CHAR_PROP_BIT_INDICATE | ESP_GATT_CHAR_PROP_BIT_WRITE;;
+static const uint8_t temp_placeholder1[2]                   = {0x00, 0x00};
+static const uint8_t temp_placeholder2[12]          = {0x02, 0x68, 0x01, 0x00, 0xff, 0xe7, 0x07, 0x0c, 0x07, 0x0c, 0x01, 0x01};
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -189,12 +183,12 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_A] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_SSID, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_measurement), (uint8_t *)temp_measurement}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_placeholder2), (uint8_t *)temp_placeholder2}},
 
     /* Client Characteristic Configuration Descriptor */
     [IDX_CHAR_CFG_A]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(uint16_t), sizeof(temp_ccc), (uint8_t *)temp_ccc}},
+      sizeof(uint16_t), sizeof(temp_placeholder1), (uint8_t *)temp_placeholder1}},
 
 
     /* Characteristic Declaration */
@@ -205,23 +199,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_B] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_measurement), (uint8_t *)temp_measurement}},
-
-    /* Client Characteristic Configuration Descriptor */
-    // [IDX_CHAR_CFG_B]  =
-    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-    //   sizeof(uint16_t), sizeof(temp_ccc), (uint8_t *)temp_ccc}},
-
-
-    // /* Characteristic Declaration */
-    // [IDX_CHAR_B]      =
-    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-    //   CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
-    // /* Characteristic Value */
-    // [IDX_CHAR_VAL_B]  =
-    // {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-    //   GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_type), (uint8_t *)temp_type}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_placeholder2), (uint8_t *)temp_placeholder2}},
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)

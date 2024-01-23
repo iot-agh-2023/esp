@@ -125,8 +125,6 @@ esp_err_t wifi_init_sta()
 			.password = ""
 		},
 	};
-    // printf("|%s|: |%s|\n", ssid, pass);
-    // printf("|%s|: |%s|\n", wifi_config.sta.ssid, wifi_config.sta.password);
     memcpy(wifi_config.sta.ssid, ssid, 100);
     memcpy(wifi_config.sta.password, pass, 100);
     // printf("|%s|: |%s|\n", ssid, pass);

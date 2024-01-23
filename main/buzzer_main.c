@@ -28,5 +28,5 @@
 #define TAG "MAIN"
 
 void app_main() {
-    xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 5, NULL);
+    xTaskCreate(buzzer_task, "buzzer_task", 4096, NULL, 5, NULL);
 }

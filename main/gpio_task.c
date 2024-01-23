@@ -77,7 +77,7 @@ void sound(int gpio_num,uint32_t freq,uint32_t duration) {
     ledc_update_duty(GPIO_OUTPUT_SPEED, LEDC_CHANNEL_0);
 }
 
-void gpio_task(void *pvParameters) {
+void buzzer_task(void *pvParameters) {
 	ESP_LOGI(TAG, "Starting");
     /*
     10, 100, 300, 2000 - buczy tak samo

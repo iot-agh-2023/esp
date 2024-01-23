@@ -41,7 +41,7 @@ void wifi_sanity_check();
 
 void app_main()
 {
-    xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 5, NULL);
+    xTaskCreate(buzzer_task, "buzzer_task", 4096, NULL, 5, NULL);
     init();
     display_text(1, "Hello");
     wifi_sanity_check();
@@ -64,7 +64,7 @@ void app_main()
 
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
-            // xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 10, NULL);
+            // xTaskCreate(buzzer_task, "buzzer_task", 4096, NULL, 10, NULL);
             // if (is_wifi_connected() && http_ping.state == IDLE) {
             //     // http_ping.url = "http://iot-server.glitch.me/ping";
             //     http_ping.url = "http://iot-server.glitch.me/ping";
