@@ -25,7 +25,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/event_groups.h"
+// #include "freertos/event_groups.h"
 #include "nvs_flash.h"
 #include "mdns.h"
 // std libs
@@ -34,12 +34,14 @@
 #include <stdlib.h>
 
 static char const *TAG = "main";
+#define GPIO_OUTPUT    18
 
 void init();
 void wifi_sanity_check();
 
 void app_main()
 {
+    xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 5, NULL);
     init();
     display_text(1, "Hello");
     wifi_sanity_check();
@@ -49,7 +51,8 @@ void app_main()
         .url = "init",
         .state = IDLE
     };
-    http_ping.url = "http://192.168.137.1:3000/ping";
+    // http_ping.url = "http://192.168.137.1:3000/ping";
+    http_ping.url = "http://example.com";
     xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
 
     while(1) {
@@ -61,12 +64,12 @@ void app_main()
 
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
-            xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 5, NULL);
-            if (is_wifi_connected() && http_ping.state == IDLE) {
-                // http_ping.url = "http://iot-server.glitch.me/ping";
-                http_ping.url = "http://192.168.137.1:3000/ping";
-                xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
-            }
+            // xTaskCreate(gpio_task, "gpio_task", 4096, NULL, 10, NULL);
+            // if (is_wifi_connected() && http_ping.state == IDLE) {
+            //     // http_ping.url = "http://iot-server.glitch.me/ping";
+            //     http_ping.url = "http://iot-server.glitch.me/ping";
+            //     xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
+            // }
         }
 
         if (!is_wifi_connected() && prevWifi) {

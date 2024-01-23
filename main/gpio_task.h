@@ -16,6 +16,7 @@
 #ifndef MAIN_GPIO_TASK_H_
 #define MAIN_GPIO_TASK_H_
 
+void sound(int gpio_num,uint32_t freq,uint32_t duration);
 void gpio_task(void *pvParameters);
 
 #endif /* MAIN_GPIO_TASK_H_ */

@@ -78,24 +78,14 @@ void sound(int gpio_num,uint32_t freq,uint32_t duration) {
 }
 
 void gpio_task(void *pvParameters) {
-	EventBits_t bits;
-
-	uint32_t loop=0;
-
-	alarm_eventgroup = xEventGroupCreate();
-
 	ESP_LOGI(TAG, "Starting");
     /*
     10, 100, 300, 2000 - buczy tak samo
     */
+    vTaskDelay(300/portTICK_PERIOD_MS);
     sound(GPIO_OUTPUT, 10, 200);
     vTaskDelay(200/portTICK_PERIOD_MS);
     sound(GPIO_OUTPUT, 10, 200);
-
-	while (1) {
-        vTaskDelay(100000/portTICK_PERIOD_MS);
-		loop++;
-	}
 
 	ESP_LOGI(TAG, "All done!");
 
