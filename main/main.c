@@ -51,9 +51,6 @@ void app_main()
         .url = "init",
         .state = IDLE
     };
-    // http_ping.url = "http://192.168.137.1:3000/ping";
-    http_ping.url = "http://example.com";
-    xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
 
     while(1) {
         if (http_ping.state == FINISHED) {
@@ -65,11 +62,11 @@ void app_main()
         if (button_just_pressed()) {
             ESP_LOGI(TAG, "Button pressed");
             // xTaskCreate(buzzer_task, "buzzer_task", 4096, NULL, 10, NULL);
-            // if (is_wifi_connected() && http_ping.state == IDLE) {
-            //     // http_ping.url = "http://iot-server.glitch.me/ping";
-            //     http_ping.url = "http://iot-server.glitch.me/ping";
-            //     xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
-            // }
+            if (is_wifi_connected() && http_ping.state == IDLE) {
+                // http_ping.url = "http://iot-server.glitch.me/ping";
+                http_ping.url = "http://iot-server.glitch.me/ping";
+                xTaskCreate((void (*)(void*))task_http_get, "Trying tasks", 4096, &http_ping, 10, NULL);
+            }
         }
 
         if (!is_wifi_connected() && prevWifi) {
@@ -112,7 +109,7 @@ void init()
 }
 
 void wifi_sanity_check() {
-    const char* SANITY_URL = "http://example.com";
+    const char* SANITY_URL = "http://iot-server.glitch.me/ping";
     ESP_LOGI(TAG, "Performing WIFI sanity check with %s", SANITY_URL);
     char* response = http_get(SANITY_URL);
     ESP_LOGI(TAG, "Received response: %s", response);
