@@ -14,6 +14,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define TEMPERATURE_MQTT_ENDPOINT "sensor/temperature/" CONFIG_CHIP_ID
+#define HUMIDITY_MQTT_ENDPOINT "sensor/humidity/" CONFIG_CHIP_ID
+
 static char const *TAG = "mqtt";
 static bool is_mqtt_stopped = true;
 static esp_mqtt_client_handle_t mqtt_client = NULL;
@@ -51,8 +54,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
         while(true) {
             vTaskDelay(2000 / portTICK_PERIOD_MS);
-            //2 to zahardcodowane id czujnika - Pałka chciał żeby tu było ESP32_%CHIPID%
-            //Sending info -> np. "26.7 19.01.2024 16:25" ale inny format daty też może być albo bez daty
             if(!is_mqtt_stopped) {
                 struct dht11_reading reading = DHT11_read();
                 if (reading.status < 0) {
@@ -68,9 +69,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
                     sprintf(temperature, "%d", reading.temperature);
                     sprintf(humidity, "%d", reading.humidity);
 
-                    msg_id = esp_mqtt_client_publish(client, "sensor/temperature/2", temperature, 0, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, TEMPERATURE_MQTT_ENDPOINT, temperature, 0, 0, 0);
                     ESP_LOGI(TAG, "sent publish after subscribing successful, msg_id=%d", msg_id);
-                    msg_id = esp_mqtt_client_publish(client, "sensor/humidity/2", humidity, 0, 0, 0);
+                    msg_id = esp_mqtt_client_publish(client, HUMIDITY_MQTT_ENDPOINT, humidity, 0, 0, 0);
                     ESP_LOGI(TAG, "sent publish after subscribing successful, msg_id=%d", msg_id);
                 }
             } else {
@@ -83,19 +84,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_DISCONNECTED:
         is_mqtt_stopped = true;
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
-        break;
-
-    case MQTT_EVENT_SUBSCRIBED:
-        ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-
-        msg_id = esp_mqtt_client_publish(client, "sensor/2", "Message after subscribing", 0, 0, 0);
-        ESP_LOGI(TAG, "sent publish after subscribing successful, msg_id=%d", msg_id);
-
-        // Delay for 10sec (adjust the duration as needed)
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-
-        msg_id = esp_mqtt_client_unsubscribe(client, "sensor/2");
-        ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
         break;
 
     case MQTT_EVENT_UNSUBSCRIBED:
@@ -136,7 +124,7 @@ void mqtt_app_start(void)
 
     ESP_LOGI(TAG, "STARTING MQTT");
     const esp_mqtt_client_config_t mqtt_cfg = {
-        .broker.address.uri = "mqtt://192.168.137.1",
+        .broker.address.uri = "mqtt://192.168.193.48",
         .credentials.username = mqtt_username,
         .credentials.authentication.password = mqtt_password
     };

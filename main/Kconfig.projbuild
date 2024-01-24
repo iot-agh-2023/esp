@@ -51,4 +51,10 @@ menu "Application Configuration"
         help
             Pin where the button is connected (pullup)
 
+    config CHIP_ID
+        string "Unique chip number"
+        default "2"
+        help
+            Pin where the button is connected (pullup)
+
 endmenu
