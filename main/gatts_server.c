@@ -159,13 +159,16 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 static const uint16_t GATTS_SERVICE_UUID_WIFI_SETTER = 0xBE39;
 static const uint16_t GATTS_CHAR_UUID_WIFI_SSID      = 0x1890;
 static const uint16_t GATTS_CHAR_UUID_WIFI_PASS      = 0x33F0;
+static const uint16_t GATTS_CHAR_UUID_CHIP_ID        = 0x33F1;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
 static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
 static const uint8_t char_prop_write_indicate      = ESP_GATT_CHAR_PROP_BIT_INDICATE | ESP_GATT_CHAR_PROP_BIT_WRITE;;
+static const uint8_t char_prop_read                = ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t temp_placeholder1[2]                   = {0x00, 0x00};
 static const uint8_t temp_placeholder2[12]          = {0x02, 0x68, 0x01, 0x00, 0xff, 0xe7, 0x07, 0x0c, 0x07, 0x0c, 0x01, 0x01};
+static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -200,6 +203,17 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_B] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WIFI_PASS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(temp_placeholder2), (uint8_t *)temp_placeholder2}},
+
+    /* Characteristic Declaration */
+    [IDX_CHAR_C]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_C]  =
+    {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_CHIP_ID, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -362,6 +376,17 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
+            esp_gatt_rsp_t rsp;
+            memset(&rsp, 0, sizeof(esp_gatt_rsp_t));
+            rsp.attr_value.handle = param->read.handle;
+            rsp.attr_value.len = 4;
+            char id[4] = CONFIG_CHIP_ID;
+            rsp.attr_value.value[0] = id[0];
+            rsp.attr_value.value[1] = id[1];
+            rsp.attr_value.value[2] = id[2];
+            rsp.attr_value.value[3] = id[3];
+            esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id,
+                                        ESP_GATT_OK, &rsp);
             break;
         case ESP_GATTS_WRITE_EVT:
             if (!param->write.is_prep){
